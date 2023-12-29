@@ -559,8 +559,8 @@ function changeAvatar() {
       reader.readAsDataURL(blob);
       reader.onloadend = () => {
         const base64String = reader.result;
-        document.getElementById("avatarImage").src = base64String;
-        loadingImage = false;
+        // document.getElementById("avatarImage").src = base64String;
+        // loadingImage = false;
         upload(base64String);
       };
     });
