@@ -6,8 +6,8 @@ class Player {
     this.color = color
     this.username = username
     this.radius = radius
-    this.image = new Image(radius*2, radius*2)
-    this.image.src = urlPrefix + this.imageURL
+    this.image = new Image(radius * 2, radius * 2)
+    this.image.src = urlPrefixSmall + this.imageURL
   }
 
 
@@ -25,7 +25,7 @@ class Player {
     c.fillStyle = this.color
     c.fill()
     c.clip()
-    c.drawImage(this.image, this.x-this.radius, this.y-this.radius, this.radius*2, this.radius*2);
+    c.drawImage(this.image, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
     c.restore()
   }
 }
