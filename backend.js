@@ -29,6 +29,7 @@ const maxH = {}
 const maxW = {}
 const userMap = {}
 const roomUserIDs = {}
+const dummyPlayers = {}
 
 const RADIUS = 30
 const GuliId = {}
@@ -46,6 +47,7 @@ io.on('connection', (socket) => {
     room = String(uniqueRoom);
     socket.join(room);
     roomUserIDs[room] = {};
+    dummyPlayers[room] = {};
     roomUserIDs[room][userID] = true;
     userMap[userID] = socket.id;
     runningRooms[room] = 1;
@@ -128,15 +130,29 @@ io.on('connection', (socket) => {
       return;
     }
 
-    socket.join(roomName);
-    room = roomName;
+    
     var previousId = userMap[userID];
     userMap[userID] = socket.id;
 
+    if (serverSidePlayers[roomName][previousId]) {
+      serverSidePlayers[roomName][socket.id] = serverSidePlayers[roomName][previousId];
+      delete serverSidePlayers[roomName][previousId];
+    }
+    else if (dummyPlayers[roomName][previousId]) {
+      serverSidePlayers[roomName][socket.id] = dummyPlayers[roomName][previousId];
+      delete dummyPlayers[roomName][previousId];
+    }
+    
+    else
+    {
+      socket.emit('invalidRoom');
+      return;
+    }
+
+    socket.join(roomName);
+    room = roomName;
     if (maxW[room]) maxW[room] = Math.max(maxW[room], width / ratio);
     if (maxH[room]) maxH[room] = Math.max(maxH[room], height / ratio);
-    serverSidePlayers[room][socket.id] = serverSidePlayers[room][previousId];
-    delete serverSidePlayers[room][previousId];
     serverSidePlayers[room][socket.id].canvas = {
       width: width / ratio,
       height: height / ratio
@@ -197,6 +213,16 @@ io.on('connection', (socket) => {
   })
 
   socket.on('disconnect', (reason) => {
+    if (room!=0 && serverSidePlayers[room] && serverSidePlayers[room][socket.id])
+    {
+      if (serverSidePlayers[room][socket.id].score == 0)
+      {
+        dummyPlayers[room][socket.id] = serverSidePlayers[room][socket.id];
+        delete serverSidePlayers[room][socket.id];
+
+      }
+    }
+   
     console.log(socket.id, reason);
     room = 0;
   })
@@ -247,6 +273,7 @@ setInterval(() => {
         delete userMap[userID];
       }
       delete roomUserIDs[room];
+      delete dummyPlayers[room];
 
     }
 
@@ -323,10 +350,10 @@ server.listen(port, () => {
 
 console.log('server did load')
 
-var ImageKit = require("imagekit");
-
+require('dotenv').config();
+const ImageKit = require("imagekit");
 var imagekit = new ImageKit({
-  publicKey: "public_cLDZkbvBc5vSShaos83kdl6rLF4=",
-  privateKey: "private_SUKYsLN9rLisa8RcG7Qg6keRQf8=",
+  publicKey: "public_wqJSbY8kM/koZvHg41fLVl40LqY=",
+  privateKey: `${process.env.PRIV_KEY}`,
   urlEndpoint: "https://ik.imagekit.io/shootyourbuddy/"
 });
