@@ -5,14 +5,17 @@ var gameRunning = false;
 var gameClosed = false;
 var userID = -1;
 var myFileName = "avatar";
-const urlPrefix = "https://ik.imagekit.io/shootyourbuddy/tr:w-300,h-300,fo-face,z-1/";
-const socket = io()
+const socket = io();
+var prevSrc;
 
 var devicePixelRatio = window.devicePixelRatio || 1
 canvas.width = innerWidth * devicePixelRatio
 canvas.height = innerHeight * devicePixelRatio * 0.65
 
 c.scale(devicePixelRatio, devicePixelRatio)
+
+var urlPrefix = "https://ik.imagekit.io/shootyourbuddy/tr:w-" + String(devicePixelRatio * 300) + ",h-" + String(devicePixelRatio * 300) + ",fo-face,z-1/";
+var urlPrefixSmall = "https://ik.imagekit.io/shootyourbuddy/tr:w-" + String(devicePixelRatio * 60) + ",h-" + String(devicePixelRatio * 60) + ",fo-face,z-1/";
 
 const clientSidePlayers = {}
 const clientSideGulis = {}
@@ -44,14 +47,9 @@ socket.on('updateGulis', (serverSideGulis) => {
 
 socket.on('updatePlayers', (serverSidePlayers) => {
 
-  document.querySelector('#whoJoined').innerHTML = '';
+  
   for (const id in serverSidePlayers) {
     const serverSidePlayer = serverSidePlayers[id]
-
-    if (id != socket.id)
-      document.querySelector('#whoJoined').innerHTML +=
-        `<p>${serverSidePlayer.username} joined</p>`;
-
     if (!clientSidePlayers[id]) {
       clientSidePlayers[id] = new Player({
         x: serverSidePlayer.x,
@@ -65,6 +63,13 @@ socket.on('updatePlayers', (serverSidePlayers) => {
       document.querySelector(
         '#playerLabels'
       ).innerHTML += `<div data-id="${id}" data-score="${serverSidePlayer.score}">${serverSidePlayer.username}: ${serverSidePlayer.score}</div>`
+    
+      if (!gameRunning && id != socket.id){
+        document.querySelector('#whoJoined').innerHTML +=
+
+        `<div player-id="${id}"><p>${serverSidePlayer.username} joined</p></div>`;
+      }
+    
     } else {
       document.querySelector(
         `div[data-id="${id}"]`
@@ -115,10 +120,17 @@ socket.on('updatePlayers', (serverSidePlayers) => {
 
   for (const id in clientSidePlayers) {
     if (!serverSidePlayers[id]) {
+
+      if (!gameRunning ){
+        const divToDelete = document.querySelector(`div[player-id="${id}"]`)
+        divToDelete.parentNode.removeChild(divToDelete)
+      }
+
       const divToDelete = document.querySelector(`div[data-id="${id}"]`)
       divToDelete.parentNode.removeChild(divToDelete)
 
       delete clientSidePlayers[id]
+
     }
   }
 })
@@ -238,7 +250,8 @@ window.addEventListener("resize", () => {
   var devicePixelRatio = window.devicePixelRatio || 1
   canvas.width = innerWidth * devicePixelRatio
   canvas.height = innerHeight * devicePixelRatio * 0.65
-  c.scale(devicePixelRatio, devicePixelRatio)
+  c.scale (devicePixelRatio, devicePixelRatio);
+
   if (gameRunning === true) {
 
     if (innerWidth < innerHeight) {
@@ -253,24 +266,34 @@ window.addEventListener("resize", () => {
       document.querySelector('#latencyDiv').style.display = 'block';
     }
   }
+
+  else{
+    resize();
+  }
+
   socket.emit('changeFrame', {
     width: canvas.width,
     height: canvas.height,
     ratio: devicePixelRatio,
   })
 
-  resize();
+  
 
 });
 
-window.addEventListener("load", resize);
-
-function resize() {
+window.addEventListener("load", ()=>{
+  changeAvatar();
   document.body.style.zoom = 1.0;
   document.body.style.transform = 'scale(1.0)';
   document.body.style['-o-transform'] = 'scale(1.0)';
   document.body.style['-webkit-transform'] = 'scale(1.0)';
   document.body.style['-moz-transform'] = 'scale(1.0)';
+  resize();
+  
+});
+
+function resize() {
+
 
   var ratio = innerWidth / innerHeight;
   if (ratio > 1.5) {
@@ -288,10 +311,10 @@ function resize() {
 }
 
 function handleFileSelect(evt) {
-  let files = evt.target.files;
-  let f = files[0];
+  prevSrc = document.getElementById("avatarImage").src;
   document.getElementById("avatarImage").src = 'loading.gif';
-  upload(f);
+  loadingImage = true;
+  upload(evt.target.files[0]);
 }
 
 document.getElementById('file-input').addEventListener('change', handleFileSelect, false);
@@ -341,8 +364,11 @@ document.getElementById('startButton').addEventListener('click', () => {
 })
 
 function initFromStart() {
+  $('#roomCode2').text(`Room Code: ${roomCode}`);
+  document.getElementById('roomCode2').style.backgroundColor = clientSidePlayers[socket.id].color;
+  show();
+
   sleep(1000).then(() => {
-    show();
     gameRunning = true;
     if (innerWidth < innerHeight) {
       document.querySelector('#gameScreen').style.display = 'none';
@@ -460,7 +486,7 @@ function upload(f) {
   var formData = new FormData();
   formData.append("file", f);
   formData.append("fileName", "a");
-  formData.append("publicKey", "public_cLDZkbvBc5vSShaos83kdl6rLF4=");
+  formData.append("publicKey", "public_wqJSbY8kM/koZvHg41fLVl40LqY=");
 
   $.ajax({
     url: "/auth",
@@ -481,16 +507,27 @@ function upload(f) {
         contentType: false,
         error: function (jqxhr, text, error) {
           console.log(error);
-          document.getElementById("avatarImage").src = urlPrefix + myFileName;
+          if (loadingImage==true){
+          document.getElementById("avatarImage").src = prevSrc;
+          loadingImage = false;
+          }
         },
         success: function (body) {
           if (body.height && body.width && body.height > 0 && body.width > 0) {
             myFileName = body.name;
+            if (loadingImage==true){
+            document.getElementById("avatarImage").src = urlPrefix + body.name;
+            loadingImage = false;
+            }
           }
           else {
             console.log(body);
+            if (loadingImage==true){
+            document.getElementById("avatarImage").src = prevSrc;
+            loadingImage = false;
+            }
           }
-          document.getElementById("avatarImage").src = urlPrefix + myFileName;
+          
         }
       });
 
@@ -498,8 +535,33 @@ function upload(f) {
 
     error: function (jqxhr, text, error) {
       console.log(error);
-      document.getElementById("avatarImage").src = urlPrefix + myFileName;
+      if (loadingImage==true){
+      document.getElementById("avatarImage").src = prevSrc;
+      loadingImage = false;
+
+      }
     }
   });
 
+}
+
+
+
+function changeAvatar() {
+  prevSrc = document.getElementById("avatarImage").src;
+  document.getElementById("avatarImage").src = "loading.gif";
+  loadingImage = true;
+  
+  fetch("https://avatar.iran.liara.run/public")
+    .then(response => response.blob())
+    .then(blob => {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        document.getElementById("avatarImage").src = base64String;
+        loadingImage = false;
+        upload(base64String);
+      };
+    });
 }
