@@ -5,12 +5,12 @@ var gameRunning = false;
 var gameClosed = false;
 var userID = -1;
 var myFileName = "avatar";
+var myUsername = "";
 const socket = io();
 var prevSrc;
-
 var devicePixelRatio = window.devicePixelRatio || 1
 canvas.width = innerWidth * devicePixelRatio
-canvas.height = innerHeight * devicePixelRatio * 0.65
+canvas.height = innerHeight * devicePixelRatio * (viewer == true ? 1 : 0.65)
 
 c.scale(devicePixelRatio, devicePixelRatio)
 
@@ -47,7 +47,7 @@ socket.on('updateGulis', (serverSideGulis) => {
 
 socket.on('updatePlayers', (serverSidePlayers) => {
 
-  
+
   for (const id in serverSidePlayers) {
     const serverSidePlayer = serverSidePlayers[id]
     if (!clientSidePlayers[id]) {
@@ -63,14 +63,18 @@ socket.on('updatePlayers', (serverSidePlayers) => {
       document.querySelector(
         '#playerLabels'
       ).innerHTML += `<div data-id="${id}" data-score="${serverSidePlayer.score}">${serverSidePlayer.username}: ${serverSidePlayer.score}</div>`
-    
-      if (!gameRunning && id != socket.id){
+
+      if (gameRunning ==false && id != socket.id) {
         document.querySelector('#whoJoined').innerHTML +=
 
-        `<div player-id="${id}"><p>${serverSidePlayer.username} joined</p></div>`;
+          `<div player-id="${id}"><p>${serverSidePlayer.username} joined</p></div>`;
       }
-    
+
     } else {
+      if (serverSidePlayer.imageURL != clientSidePlayers[id].imageURL) {
+        clientSidePlayers[id].imageURL = serverSidePlayer.imageURL;
+        clientSidePlayers[id].image.src = urlPrefixSmall + clientSidePlayers[id].imageURL;
+      }
       document.querySelector(
         `div[data-id="${id}"]`
       ).innerHTML = `${serverSidePlayer.username}: ${serverSidePlayer.score}`
@@ -121,7 +125,7 @@ socket.on('updatePlayers', (serverSidePlayers) => {
   for (const id in clientSidePlayers) {
     if (!serverSidePlayers[id]) {
 
-      if (!gameRunning ){
+      if (gameRunning == false) {
         const divToDelete = document.querySelector(`div[player-id="${id}"]`)
         divToDelete.parentNode.removeChild(divToDelete)
       }
@@ -249,8 +253,8 @@ socket.on("setUserID", (id) => {
 window.addEventListener("resize", () => {
   var devicePixelRatio = window.devicePixelRatio || 1
   canvas.width = innerWidth * devicePixelRatio
-  canvas.height = innerHeight * devicePixelRatio * 0.65
-  c.scale (devicePixelRatio, devicePixelRatio);
+  canvas.height = innerHeight * devicePixelRatio * (viewer == true ? 1 : 0.65)
+  c.scale(devicePixelRatio, devicePixelRatio);
 
   if (gameRunning === true) {
 
@@ -258,16 +262,17 @@ window.addEventListener("resize", () => {
       document.querySelector('#gameScreen').style.display = 'none';
       document.querySelector('#rotate').style.display = 'flex';
       document.querySelector('#latencyDiv').style.display = 'none';
-
+      document.getElementById('latency').style.fontSize = '20px';
     }
     else {
       document.querySelector('#gameScreen').style.display = 'block';
       document.querySelector('#rotate').style.display = 'none';
       document.querySelector('#latencyDiv').style.display = 'block';
+      document.getElementById('latency').style.fontSize = '14px';
     }
   }
 
-  else{
+  else {
     resize();
   }
 
@@ -277,19 +282,50 @@ window.addEventListener("resize", () => {
     ratio: devicePixelRatio,
   })
 
-  
+
 
 });
 
-window.addEventListener("load", ()=>{
-  changeAvatar();
+window.addEventListener("load", () => {
+  window.history.pushState({}, null, null);
+  document.querySelector('#createButton').style.setProperty('--clr-neon', `hsl(${360 * Math.random()}, 100%, 65%)`); 
+  document.querySelector('#joinButton').style.setProperty('--clr-neon', `hsl(${360 * Math.random()}, 100%, 65%)`); 
+  document.querySelector('#viewButton').style.setProperty('--clr-neon', `hsl(${360 * Math.random()}, 100%, 65%)`); 
+  
+  if (document.cookie) {
+    cookie = JSON.parse(document.cookie)
+    myUsername = cookie.username;
+    myFileName = cookie.filename;
+  }
+  document.querySelector('#usernameInput').value = myUsername;
+  if (myFileName != "avatar" && myFileName != "loading.gif") {
+    fetch(urlPrefix + myFileName).then(response => {
+      if (response.ok) {
+        return response.blob();
+      }
+    }).then(blob => {
+      if (!blob) { changeAvatar(); return; }
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        document.getElementById("avatarImage").src = base64String;
+      };
+    })
+      .catch(error => {
+        console.log(error);
+        changeAvatar();
+      });
+
+  }
+  else changeAvatar();
   document.body.style.zoom = 1.0;
   document.body.style.transform = 'scale(1.0)';
   document.body.style['-o-transform'] = 'scale(1.0)';
   document.body.style['-webkit-transform'] = 'scale(1.0)';
   document.body.style['-moz-transform'] = 'scale(1.0)';
   resize();
-  
+
 });
 
 function resize() {
@@ -300,13 +336,13 @@ function resize() {
     document.getElementById('usernameForm').style.transform = 'scale(0.5)';
     document.getElementById('enterRoomCode').style.transform = 'scale(1)';
     document.getElementById('waitingScreenCreate').style.transform = 'scale(0.75)';
-    document.getElementById('latency').style.fontSize = 'medium';
+    document.getElementById('latency').style.fontSize = '14px';
   }
   else {
     document.getElementById('usernameForm').style.transform = 'scale(1)';
     document.getElementById('enterRoomCode').style.transform = 'scale(2)';
     document.getElementById('waitingScreenCreate').style.transform = 'scale(1.2)';
-    document.getElementById('latency').style.fontSize = 'x-large';
+    document.getElementById('latency').style.fontSize = '18px';
   }
 }
 
@@ -326,7 +362,8 @@ document.getElementById('createButton').addEventListener('click', () => {
     alert("Oops! Username is empty.");
     return;
   }
-
+  myUsername = v;
+  document.cookie = JSON.stringify({ username: myUsername, filename: myFileName });
   $('#waitingScreenCreate').slideToggle(900, "swing");
 
   $('#usernameForm').slideToggle(900, "swing");
@@ -365,8 +402,8 @@ document.getElementById('startButton').addEventListener('click', () => {
 
 function initFromStart() {
   $('#roomCode2').text(`Room Code: ${roomCode}`);
-  document.getElementById('roomCode2').style.backgroundColor = clientSidePlayers[socket.id].color;
-  show();
+  if (viewer==true)show(false);
+  else show(true);
 
   sleep(1000).then(() => {
     gameRunning = true;
@@ -382,7 +419,7 @@ function initFromStart() {
     }
     $('#userDiv').slideToggle(300, "linear");
     sleep(1000).then(() => {
-      document.querySelector('#userDiv').style.display = 'none';
+      if (document.querySelector('#userDiv').style.display != 'none') document.querySelector('#userDiv').style.display = 'none';
 
     })
 
@@ -417,6 +454,9 @@ document.getElementById('joinButton').addEventListener('click', () => {
     return;
   }
 
+  myUsername = v;
+  document.cookie = JSON.stringify({ username: myUsername, filename: myFileName });
+
   $('#enterRoomCode').slideToggle(900, "swing");
 
   $('#usernameForm').slideToggle(900, "swing");
@@ -427,15 +467,15 @@ document.getElementById('joinButton').addEventListener('click', () => {
 
 });
 
-document.getElementById('roomCodeButton').addEventListener('click', () => {
-
+function roomCodeButtonFunction(event) {
+  event.preventDefault();
   var v = document.querySelector('#roomCodeInput').value;
   if (v === "") {
     alert("Oops! Room Code is empty.");
     return;
   }
 
-  socket.emit('joinRoom', {
+  if (viewer==false)socket.emit('joinRoom', {
     roomName: v,
     width: canvas.width,
     height: canvas.height,
@@ -444,34 +484,47 @@ document.getElementById('roomCodeButton').addEventListener('click', () => {
     imageURL: myFileName,
     userID: userID
   })
+  else socket.emit('requestView', {
+    roomName: v,
+    width: canvas.width,
+    height: canvas.height,
+    ratio: devicePixelRatio
+  });
+  
+}
+document.getElementById('roomCodeButton').addEventListener('click', roomCodeButtonFunction);
 
-});
+document.getElementById('roomCodeForm').addEventListener('submit', roomCodeButtonFunction);
 
 socket.on('roomJoinSuccess', () => {
 
-  document.querySelector('#waitTitle').innerHTML = "Waiting for your buddy to start the game!";
   document.querySelector('#startButton').style.display = 'none';
+  document.querySelector('#waitTitle').innerHTML = "Waiting for your buddy to start the game!";
   roomCode = document.querySelector('#roomCodeInput').value;
   $('#roomCode').text(`Room Code: ${roomCode}`);
+    
+  if (gameRunning == false){
+
 
   $('#waitingScreenCreate').slideToggle(900, "swing");
 
   $('#enterRoomCode').slideToggle(900, "swing");
   sleep(2000).then(() => {
-    document.querySelector('#waitingScreenCreate').style.display = 'block';
-    document.querySelector('#enterRoomCode').style.display = 'none';
+    if (document.querySelector('#waitingScreenCreate').style.display == 'none') document.querySelector('#waitingScreenCreate').style.display = 'block';
+    if (document.querySelector('#enterRoomCode').style.display != 'none') document.querySelector('#enterRoomCode').style.display = 'none';
   })
+}
 
 })
 
 socket.on('invalidRoom', () => {
 
   if (roomCode == 0) { alert("Invalid Room Code! No such rooms running."); }
-  else if (gameClosed == false) { alert("Your room was expired!"); gameClosed = true; }
+  else if (gameClosed == false) { alert("Your room was expired!"); gameClosed = true;}
 })
 
 socket.on("requestAgain", () => {
-  socket.emit('rejoinRoom', {
+  if (viewer==false) socket.emit('rejoinRoom', {
     roomName: roomCode,
     userID: userID,
     width: canvas.width,
@@ -479,6 +532,14 @@ socket.on("requestAgain", () => {
     ratio: devicePixelRatio
 
   });
+  else{
+    socket.emit('requestView', {
+      roomName: v,
+      width: canvas.width,
+      height: canvas.height,
+      ratio: devicePixelRatio
+    });
+  }
 })
 
 function upload(f) {
@@ -507,27 +568,29 @@ function upload(f) {
         contentType: false,
         error: function (jqxhr, text, error) {
           console.log(error);
-          if (loadingImage==true){
-          document.getElementById("avatarImage").src = prevSrc;
-          loadingImage = false;
+          if (loadingImage == true) {
+            document.getElementById("avatarImage").src = prevSrc;
+            loadingImage = false;
           }
         },
         success: function (body) {
           if (body.height && body.width && body.height > 0 && body.width > 0) {
             myFileName = body.name;
-            if (loadingImage==true){
-            document.getElementById("avatarImage").src = urlPrefix + body.name;
-            loadingImage = false;
+            socket.emit("changeImage", myFileName);
+            document.cookie = JSON.stringify({ username: myUsername, filename: myFileName });
+            if (loadingImage == true) {
+              document.getElementById("avatarImage").src = urlPrefix + body.name;
+              loadingImage = false;
             }
           }
           else {
             console.log(body);
-            if (loadingImage==true){
-            document.getElementById("avatarImage").src = prevSrc;
-            loadingImage = false;
+            if (loadingImage == true) {
+              document.getElementById("avatarImage").src = prevSrc;
+              loadingImage = false;
             }
           }
-          
+
         }
       });
 
@@ -535,9 +598,9 @@ function upload(f) {
 
     error: function (jqxhr, text, error) {
       console.log(error);
-      if (loadingImage==true){
-      document.getElementById("avatarImage").src = prevSrc;
-      loadingImage = false;
+      if (loadingImage == true) {
+        document.getElementById("avatarImage").src = prevSrc;
+        loadingImage = false;
 
       }
     }
@@ -551,7 +614,7 @@ function changeAvatar() {
   prevSrc = document.getElementById("avatarImage").src;
   document.getElementById("avatarImage").src = "loading.gif";
   loadingImage = true;
-  
+
   fetch("https://avatar.iran.liara.run/public")
     .then(response => response.blob())
     .then(blob => {
@@ -559,9 +622,76 @@ function changeAvatar() {
       reader.readAsDataURL(blob);
       reader.onloadend = () => {
         const base64String = reader.result;
-        // document.getElementById("avatarImage").src = base64String;
-        // loadingImage = false;
+        document.getElementById("avatarImage").src = base64String;
+        loadingImage = false;
         upload(base64String);
       };
-    });
+    }).catch(err=>console.log(err));
 }
+
+
+const hsl2rgb = (h, s, l) => {
+  s /= 100;
+  l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n =>
+    l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  return [255 * f(0), 255 * f(8), 255 * f(4)];
+}; 
+
+
+const toHSLArray = (hslStr) => {
+  const hslArr = hslStr.match(/\d+/g)?.map(Number)
+  if (hslArr && hslArr.length >= 3) {
+    return hsl2rgb(hslArr[0], hslArr[1], hslArr[2])
+  }
+}
+
+function pickTextColorBasedOnBgColorAdvanced([r, g, b] ,lightColor, darkColor) {
+
+  var uicolors = [r / 255, g / 255, b / 255];
+  var c = uicolors.map((col) => {
+    if (col <= 0.03928) {
+      return col / 12.92;
+    }
+    return Math.pow((col + 0.055) / 1.055, 2.4);
+  });
+  var L = (0.2126 * c[0]) + (0.7152 * c[1]) + (0.0722 * c[2]);
+  return (L > 0.179) ? darkColor : lightColor;
+}
+
+
+document.querySelector('#usernameInput').addEventListener("input", (event)=>{
+  myUsername = document.querySelector('#usernameInput').value;
+  document.cookie = JSON.stringify({ username: myUsername, filename: myFileName });
+
+})
+
+
+socket.on ("playerColor", (color)=>{
+  document.getElementById('roomCode2').style.backgroundColor = color;
+  document.getElementById('roomCode2').style.color =  pickTextColorBasedOnBgColorAdvanced(toHSLArray(color) , 'white' , 'black');
+  // document.getElementById('joyArea').style.backgroundColor = color;
+ 
+})
+
+window.addEventListener('popstate', () => {
+  console.log('User clicked back button');
+})
+
+var viewer = false;
+
+document.querySelector('#viewButton').addEventListener('click', ()=>{
+  viewer = true;
+  canvas.height = innerHeight * devicePixelRatio;
+  c.scale(devicePixelRatio,devicePixelRatio);
+  document.querySelector('#playground').style.height = '100%';
+  document.querySelector('#joyArea').style.display = 'none';
+  $('#enterRoomCode').slideToggle(900, "swing");
+  $('#usernameForm').slideToggle(900, "swing");
+  sleep(2000).then(() => {
+    document.querySelector('#enterRoomCode').style.display = 'block';
+    document.querySelector('#usernameForm').style.display = 'none';
+  })
+})
