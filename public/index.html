@@ -1,5 +1,5 @@
-<html>
 
+<html>
 <head>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -49,7 +49,7 @@
           color: white;
           padding: 8px;
           font-family: sans-serif;
-          font-size: 25px;
+          font-size: 20px;
           user-select: none;
           background: rgba(0, 0, 0, 0.5);
           text-align: right;
@@ -63,7 +63,7 @@
           position: absolute;
           color: white;
           font-family: sans-serif;
-          font-size: 16px;
+          font-size: 20px;
           user-select: none;
           text-align: center;
           bottom:0;
@@ -73,7 +73,7 @@
           width: fit-content;
 
         ">
-        <div id="roomCode2" style=" text-align:center; color: white; background: rgb(194, 10, 10);">Room code: 1234</div>
+        <div id="roomCode2" style="font-weight: bold; text-align:center; color: rgb(0, 0, 0); background: rgb(255, 255, 255); padding: 10px">Room code: ****</div>
       </div>
 
       <canvas id='playground'></canvas>
@@ -113,17 +113,17 @@
           left: 0;
           
         ">
-    <div id="usernameForm" style="transform: scale(0.5); max-width: 100%; max-height: 100%">
+    <div id="usernameForm" style="transform: scale(0.5); max-width: 100%; max-height: 100%; align-items: center; align-content: center; display: flex; flex-direction: column;">
 
       <div style="width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
 
         <div style="display: flex; flex-direction: row; justify-content: center; align-items: center;"><img
             id="avatarImage" src="loading.gif" alt=""
-            style="margin-left: 70px; border-radius: 50%; height: 200px; width: 200px; margin-bottom: 25px; object-fit: cover;">
-          <button style="width: 50px; height: 50px; margin-left: 20px; background-color: rgba(0, 0, 0, 0); border: 0px"
-            class="btn-reload" onclick="changeAvatar()">
-            <img src="https://htmlacademy.ru/assets/icons/reload-6x-white.png">
-          </button>
+            style="margin-left: 70px; margin-right: 20px; border-radius: 50%; height: 200px; width: 200px; margin-bottom: 25px; object-fit: cover;">
+              <button class="btn-reload" onclick="changeAvatar()">
+                <img src="https://htmlacademy.ru/assets/icons/reload-6x-white.png">
+              </button>
+            
         </div>
 
         <input type="file" name="avatar" id="file-input" accept="image/*">
@@ -136,7 +136,7 @@
                 background: #414141;
                 color: #ffffff;
 
-                width: 100%;
+                width: 580px;
                 margin-bottom: 15px;
                 margin-top: 25px;
                 font-size: 40px;
@@ -144,14 +144,21 @@
               " />
 
       </div>
-      <div style="text-align: center; margin-top: 20px; align-items:center; display: flex; justify-content: center;">
+      <div style=" align-content: center; text-align: center; margin-top: 20px; align-items:center; display: flex; justify-content: center; width: max-content;">
         <div style=" padding-right: 10px;"><a class="neon-button" id="createButton">
             Create Room
           </a>
         </div>
 
-        <div style=" padding-left: 10px;"><a class="blue-button" id="joinButton">
+        <div style=" padding-left: 10px;"><a class="neon-button" id="joinButton">
             Join a Room
+          </a>
+        </div>
+      </div>
+      <div style=" align-content: center; text-align: center; margin-top: 20px; align-items:center; display: flex; justify-content: center; width: max-content;">
+        
+        <div style="padding-top: 25px;"><a class="neon-button" id="viewButton">
+            Watch a game
           </a>
         </div>
       </div>
@@ -186,9 +193,9 @@
     </div>
 
     <div id="enterRoomCode" style="display: none;">
-      <div class="wrapper">
+      <form class="wrapper" id="roomCodeForm">
         <input id="roomCodeInput" style="font-size: large; color: white;" type="number" placeholder="Room Code" />
-        <button id="roomCodeButton">
+        <button  type="submit" id="roomCodeButton">
           <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 24 24" stroke-width="2"
             stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
@@ -197,7 +204,7 @@
             <path d="M13 6l6 6"></path>
           </svg>
         </button>
-      </div>
+      </form>
     </div>
 
   </div>
@@ -235,14 +242,14 @@
   color: white;
   padding: 2px;
   font-family: sans-serif;
-  font-size: 25px;
+  font-size: 16px;
   user-select: none;
   background: rgba(255, 255, 255, 0.5);
   text-align: right;
-  top: 50px;
+  top: 40px;
   right:0;
 " id="latencyDiv">
-    <span id="latency" style="font-size:medium;">Latency: </span>
+    <span id="latency" style="font-size:14px;">Latency: </span>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.2/gsap.min.js"></script>

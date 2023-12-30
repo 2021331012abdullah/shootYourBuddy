@@ -40,7 +40,7 @@ body {
 
 #joyArea {
   width: 100%;
-  height: 31%;
+  height: 35%;
   background-color: rgb(82, 82, 82);
 }
 
@@ -66,8 +66,8 @@ input::placeholder {
 }
 
 :root {
-  --clr-neon: hsl(317, 100%, 50%);
-  --clr-blue: hsl(302, 100%, 60%);
+  /* --clr-neon: hsl(317, 100%, 50%);
+  --clr-blue: hsl(302, 100%, 60%); */
   --clr-bg: hsl(0, 0%, 100%);
 }
 
@@ -126,54 +126,6 @@ input::placeholder {
   opacity: 1;
 }
 
-.blue-button {
-  font-size: 2rem;
-
-  display: inline-block;
-  cursor: pointer;
-  text-decoration: none;
-  color: var(--clr-blue);
-  border: var(--clr-blue) 0.125em solid;
-  padding: 0.25em 1em;
-  border-radius: 0.25em;
-
-  text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em currentColor;
-
-  box-shadow: inset 0 0 0.5em 0 var(--clr-blue), 0 0 0.5em 0 var(--clr-blue);
-
-  position: relative;
-}
-
-
-.blue-button::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  box-shadow: 0 0 2em 0.5em var(--clr-blue);
-  opacity: 0;
-  background-color: var(--clr-blue);
-  z-index: -1;
-  transition: opacity 100ms linear;
-}
-
-.blue-button:hover,
-.blue-button:focus {
-  color: var(--clr-bg);
-  text-shadow: none;
-}
-
-.blue-button:hover::before,
-.blue-button:focus::before {
-  opacity: 1;
-}
-
-.blue-button:hover::after,
-.blue-button:focus::after {
-  opacity: 1;
-}
 
 .button3d {
   --top: rgba(100, 100, 100, .8);
@@ -757,7 +709,20 @@ button100:hover {
   right: 0px;
 }
 
-.btn-reload:focus{
+
+
+button-reload {
+  position: relative;
+  width: 50px;
+  color: rgba(0, 0, 0, 0);
+  border: none;
+  outline: none;
   transition: transform 0.4s ease-in-out;
-  transform: rotate(360deg) scale(1.1);
 }
+
+
+.btn-reload {
+  background: #00000000;
+  border: 0;
+}
+
