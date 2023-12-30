@@ -42,6 +42,34 @@ io.on('connection', (socket) => {
 
   var toldToRequest = false;
 
+  socket.on("requestView" , ({ roomName, width, height, ratio }) =>{
+  
+    console.log("request to view: ", roomName);
+    if (!runningRooms[roomName]) {
+      socket.emit('invalidRoom');
+      return;
+    }
+    room = roomName;
+    socket.join(roomName);
+    socket.emit('roomJoinSuccess');
+    if (maxW[room]) maxW[room] = Math.max(maxW[room], width / ratio);
+    if (maxH[room]) maxH[room] = Math.max(maxH[room], height / ratio);
+
+    if (roomStartTime[room]) {
+      socket.emit('initGame');
+    }
+    
+  })
+
+  socket.on("changeImage", (imageURL)=>
+  {
+
+    if (room !=0 && serverSidePlayers[room] && serverSidePlayers[room][socket.id])
+    {
+      serverSidePlayers[room][socket.id].imageURL = imageURL;
+    }
+  })
+
   socket.on("requestRoomCode", ({ username, width, height, ratio, imageURL, userID }) => {
     uniqueRoom += Math.round(Math.random() * 100) + 1;
     room = String(uniqueRoom);
@@ -58,7 +86,7 @@ io.on('connection', (socket) => {
     serverSidePlayers[room][socket.id] = {
       x: width / ratio * Math.random(),
       y: height / ratio * Math.random(),
-      color: `hsl(${360 * Math.random()}, 100%, 50%)`,
+      color: `hsl(${360 * Math.random()}, 100%, 60%)`,
       sequenceNumber: 0,
       score: 0,
       username,
@@ -71,12 +99,13 @@ io.on('connection', (socket) => {
     }
 
     serverSidePlayers[room][socket.id].radius = RADIUS
+    socket.emit('playerColor' , serverSidePlayers[room][socket.id].color); 
     socket.emit('recieveRoomCode', room);
     console.log("room created: ", room);
   })
 
   socket.on("startRoom", () => {
-    if (room == 0) return;
+    if (room == 0 || !serverSidePlayers[room] || !serverSidePlayers[room][socket.id]) return;
     roomStartTime[room] = Date.now();
     io.to(room).emit('initGame');
     GuliId[room] = 0;
@@ -100,7 +129,7 @@ io.on('connection', (socket) => {
     serverSidePlayers[room][socket.id] = {
       x: width / ratio * Math.random(),
       y: height / ratio * Math.random(),
-      color: `hsl(${360 * Math.random()}, 100%, 50%)`,
+      color: `hsl(${360 * Math.random()}, 100%, 60%)`,
       sequenceNumber: 0,
       score: 0,
       username,
@@ -114,7 +143,7 @@ io.on('connection', (socket) => {
     }
 
     serverSidePlayers[room][socket.id].radius = RADIUS
-
+    socket.emit('playerColor' , serverSidePlayers[room][socket.id].color); 
     socket.emit('roomJoinSuccess');
 
     if (roomStartTime[room]) {
@@ -157,7 +186,7 @@ io.on('connection', (socket) => {
       width: width / ratio,
       height: height / ratio
     }
-
+    socket.emit('playerColor' , serverSidePlayers[room][socket.id].color); 
     if (roomStartTime[room]) {
       socket.emit('initGame');
     }
