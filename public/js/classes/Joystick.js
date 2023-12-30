@@ -1,4 +1,4 @@
-function show() {
+function show(showJoystick) {
   //try to go for fullscreen
   const elem = document.documentElement;
   if (elem.requestFullscreen) { /* Chrome */
@@ -11,8 +11,10 @@ function show() {
 
   document.querySelector("#gameScreen").style.display = "block";
 
-  init('joystick1');
-  init('joystick2');
+  if(showJoystick){
+    init('joystick1');
+    init('joystick2');
+}
 
 }
 
@@ -40,10 +42,12 @@ function init(joystickName) {
     psp.alpha = 0.25;
     switch (joystickName) {
       case "joystick1":
-        joystickData.shoot.moving = true;
+        joystickData.shoot.moving = false;
+        joystickData.shoot.angle = 0;
         break;
       case "joystick2":
-        joystickData.movement.moving = true;
+        joystickData.movement.moving = false;
+        joystickData.movement.angle = 0;
     }
 
     stage.update();
@@ -53,9 +57,11 @@ function init(joystickName) {
     var coords = calculateCoords(ev.angle, ev.distance);
     switch (joystickName) {
       case "joystick1":
+        joystickData.shoot.moving = true;
         joystickData.shoot.angle = ev.angle;
         break;
       case "joystick2":
+        joystickData.movement.moving = true;
         joystickData.movement.angle = ev.angle;
     }
     psp.x = coords.x;
@@ -69,9 +75,25 @@ function init(joystickName) {
     switch (joystickName) {
       case "joystick1":
         joystickData.shoot.moving = false;
+        joystickData.shoot.angle = 0;
         break;
       case "joystick2":
         joystickData.movement.moving = false;
+        joystickData.movement.angle = 0;
+    }
+    createjs.Tween.get(psp).to({ x: xCenter, y: yCenter }, 750, createjs.Ease.elasticOut);
+  });
+
+  hammer.on("pancancel", function (ev) {
+    psp.alpha = 0.25;
+    switch (joystickName) {
+      case "joystick1":
+        joystickData.shoot.moving = false;
+        joystickData.shoot.angle = 0;
+        break;
+      case "joystick2":
+        joystickData.movement.moving = false;
+        joystickData.movement.angle = 0;
     }
     createjs.Tween.get(psp).to({ x: xCenter, y: yCenter }, 750, createjs.Ease.elasticOut);
   });

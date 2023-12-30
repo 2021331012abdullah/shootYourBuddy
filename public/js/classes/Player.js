@@ -25,7 +25,11 @@ class Player {
     c.fillStyle = this.color
     c.fill()
     c.clip()
-    c.drawImage(this.image, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+    try {
+      c.drawImage(this.image, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+    } catch (error) {
+      
+    }
     c.restore()
   }
 }
