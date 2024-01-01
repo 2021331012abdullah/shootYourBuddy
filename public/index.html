@@ -1,27 +1,12 @@
 
 <html>
 <head>
+  <title>Shoot Your Buddy beta</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./index.css">
-  <style>
-    input[type=text] {
-      width: 100%;
-      padding: 12px 20px;
-      margin: 8px 0;
-      box-sizing: border-box;
-      border: 3px solid #ccc;
-      -webkit-transition: 0.5s;
-      transition: 0.5s;
-      outline: none;
-    }
-
-    input[type=number]:focus {
-      border: 5px solid #ffffff;
-    }
-  </style>
 
 </head>
 
@@ -38,7 +23,7 @@
           user-select: none;
           background: rgba(0, 0, 0, 0.5);
           max-height: 200px; overflow:scroll;
-        ">
+        " id="LeaderboardDiv">
 
         <div style="margin-bottom: 8px; color: white">Leaderboard</div>
         <div id="playerLabels"></div>
@@ -53,9 +38,8 @@
           user-select: none;
           background: rgba(0, 0, 0, 0.5);
           text-align: right;
-          top:0;
           right:0;
-        ">
+        " id="timeDiv">
         <div id="time" style="margin-bottom: 8px; color: white"></div>
       </div>
 
@@ -118,7 +102,7 @@
       <div style="width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
 
         <div style="display: flex; flex-direction: row; justify-content: center; align-items: center;"><img
-            id="avatarImage" src="loading.gif" alt=""
+            id="avatarImage" src="avatar.jpg" alt=""
             style="margin-left: 70px; margin-right: 20px; border-radius: 50%; height: 200px; width: 200px; margin-bottom: 25px; object-fit: cover;">
               <button class="btn-reload" onclick="changeAvatar()">
                 <img src="https://htmlacademy.ru/assets/icons/reload-6x-white.png">
@@ -158,7 +142,7 @@
       <div style=" align-content: center; text-align: center; margin-top: 20px; align-items:center; display: flex; justify-content: center; width: max-content;">
         
         <div style="padding-top: 25px;"><a class="neon-button" id="viewButton">
-            Watch a game
+            Watch a Game
           </a>
         </div>
       </div>
@@ -192,8 +176,9 @@
       </div>
     </div>
 
-    <div id="enterRoomCode" style="display: none;">
-      <form class="wrapper" id="roomCodeForm">
+    <div id="enterRoomCode" style="display:flex; display: none; align-items: center; justify-content: center; flex-direction: column;">
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <form class="wrapper" id="roomCodeForm" style="margin-top: 10%;">
         <input id="roomCodeInput" style="font-size: large; color: white;" type="number" placeholder="Room Code" />
         <button  type="submit" id="roomCodeButton">
           <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 24 24" stroke-width="2"
@@ -205,6 +190,18 @@
           </svg>
         </button>
       </form>
+      <div>
+      <button  style="padding-top: 5%; transform: scale(-1,1); border-radius: 50%; height: 50px; width: 50px;" id="backButton" >
+        <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 24 24" stroke-width="2"
+          stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+          <path d="M5 12l14 0"></path>
+          <path d="M13 18l6 -6"></path>
+          <path d="M13 6l6 6"></path>
+        </svg>
+      </button>
+      </div>
+      </div>
     </div>
 
   </div>
@@ -231,10 +228,24 @@
   </div>
 
   <div id="rotate"
-    style="background-color: rgb(0, 0, 0); display: none; flex-direction: column; text-align: center; height: 100%; width: 100%; justify-content: center; z-index: -100; ">
+    style="background-color: rgb(0, 0, 0); margin: 0; padding: 0; display: none; flex-direction: column; text-align: center; height: 100%; width: 100%; justify-content: center; z-index: -100; align-items: center;">
+<div id="rotateIn" style="padding-top: 10%;">
+    <div class="phone" style="align-self: center;">
+      <div>
+       
+        </div>
+    </div>
 
-    <img src="rotation.gif" alt="">
-
+  </div>
+  <div  id="rotateText" style="margin-top: 30%; background-color: black ;">
+    <p style="  color: white;
+    font-size: 40px;">
+      Please rotate your device!
+  </p>
+  <p id="rotateTextIn" style="  color: white;
+        font-size: 18px;">
+          We recommend Google Chrome or Safari <br>Facebook/Messenger browser doesn't work
+    </p></div>
   </div>
 
   <div style="
@@ -251,6 +262,24 @@
 " id="latencyDiv">
     <span id="latency" style="font-size:14px;">Latency: </span>
   </div>
+
+  <div style="
+  position: absolute;
+  color: white;
+  padding: 2px;
+  font-family: sans-serif;
+  user-select: none;
+  background: rgb(0, 0, 0);
+  text-align: center;
+  top: 0;
+  bottom: 0;
+  right:0;
+  left: 0;
+" id="connecting">
+    <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; "><div style="transform: scale(2);" class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+    <span style="margin-top: 75px; display: none;" id="connectingText">Taking longer? Wait until backend is spinned up!</span>
+  </div></div>
+
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.2/gsap.min.js"></script>
   <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
