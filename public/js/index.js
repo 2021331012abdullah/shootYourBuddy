@@ -1,12 +1,16 @@
+const host = "https://test001-2e33.onrender.com/"
+// const host = "https://localhost:3005/"
 const canvas = document.querySelector('#playground')
 const c = canvas.getContext('2d')
 var roomCode = 0;
 var gameRunning = false;
 var gameClosed = false;
-var userID = -1;
 var myFileName = "avatar";
 var myUsername = "";
-const socket = io();
+const socket = io(host,  { path: '/socket.io'});
+var currSocketID = -1;
+var currUserID = -1;
+
 var prevSrc;
 var devicePixelRatio = window.devicePixelRatio || 1
 canvas.width = innerWidth * devicePixelRatio
@@ -148,9 +152,7 @@ socket.on('closeGame', () => {
   document.querySelector('#rotate').style.display = 'none';
   document.querySelector('#latencyDiv').style.display = 'none';
   $('#gameScreen').slideToggle(100, "swing");
-  $('#endScreen').slideToggle(100, "swing");
-
-  sleep(500).then(() => {
+  $('#endScreen').slideToggle(100, "swing" ,() => {
     gameRunning = false;
     document.querySelector('#endScreenDiv').style.zIndex = 10;
     document.querySelector('#endScreenDiv').style.display = 'flex';
@@ -225,6 +227,7 @@ setInterval(
 
 var sendTime; var sendTimeID = 0;
 var pongRecieved = false;
+var firstPongRecieved = false;
 setInterval(() => {
   if (gameClosed == false) {
     if (pongRecieved == false) {
@@ -233,7 +236,7 @@ setInterval(() => {
     pongRecieved = false;
     sendTime = Date.now();
     sendTimeID++;
-    socket.emit("ping", { sendTimeID, roomCode, userID });
+    socket.emit("ping",sendTimeID);
   }
 }, 500);
 
@@ -242,40 +245,43 @@ socket.on("pong", (responseID) => {
     return;
   }
   pongRecieved = true;
+  if (firstPongRecieved == false){
+    firstPongRecieved = true;
+    document.querySelector('#connecting').style.display = 'none';
+  }
   var delay = Date.now() - sendTime;
   document.querySelector("#latency").innerHTML = "Latency: " + delay + "ms";
 })
 
-socket.on("setUserID", (id) => {
-  userID = id;
-})
 
+function fullScreenResize()
+{
+  if (document.fullscreenElement || document.webkitIsFullScreen || document.mozFullScreen)
+  {
+    document.querySelector('#waitingScreenCreate').style.scale = '0.65';
+    document.querySelector('#rotateIn').style.scale = '1';
+    document.querySelector('#rotateText').style.scale = '0.5';
+    document.querySelector('#rotateTextIn').style.scale = '1';
+    document.querySelector('#rotateText').style.setProperty('margin-top', '5%');
+    
+  }
+  else
+  {
+    document.querySelector('#waitingScreenCreate').style.scale = '1';
+    document.querySelector('#rotateIn').style.scale = '2.5';
+    document.querySelector('#rotateText').style.scale = '1';
+    document.querySelector('#rotateTextIn').style.scale = '1.5';
+    document.querySelector('#rotateText').style.setProperty('margin-top', '40%');
+  }
+}
 window.addEventListener("resize", () => {
   var devicePixelRatio = window.devicePixelRatio || 1
   canvas.width = innerWidth * devicePixelRatio
   canvas.height = innerHeight * devicePixelRatio * (viewer == true ? 1 : 0.65)
   c.scale(devicePixelRatio, devicePixelRatio);
 
-  if (gameRunning === true) {
-
-    if (innerWidth < innerHeight) {
-      document.querySelector('#gameScreen').style.display = 'none';
-      document.querySelector('#rotate').style.display = 'flex';
-      document.querySelector('#latencyDiv').style.display = 'none';
-      document.getElementById('latency').style.fontSize = '20px';
-    }
-    else {
-      document.querySelector('#gameScreen').style.display = 'block';
-      document.querySelector('#rotate').style.display = 'none';
-      document.querySelector('#latencyDiv').style.display = 'block';
-      document.getElementById('latency').style.fontSize = '14px';
-    }
-  }
-
-  else {
-    resize();
-  }
-
+  resize();
+  
   socket.emit('changeFrame', {
     width: canvas.width,
     height: canvas.height,
@@ -287,10 +293,17 @@ window.addEventListener("resize", () => {
 });
 
 window.addEventListener("load", () => {
+
   window.history.pushState({}, null, null);
-  document.querySelector('#createButton').style.setProperty('--clr-neon', `hsl(${360 * Math.random()}, 100%, 65%)`); 
-  document.querySelector('#joinButton').style.setProperty('--clr-neon', `hsl(${360 * Math.random()}, 100%, 65%)`); 
-  document.querySelector('#viewButton').style.setProperty('--clr-neon', `hsl(${360 * Math.random()}, 100%, 65%)`); 
+  var randomColorHue = 360 * Math.random();
+  if (randomColorHue<=300 && randomColorHue>=200) randomColorHue=300+Math.random()*60;
+  document.querySelector('#createButton').style.setProperty('--clr-neon', `hsl(${randomColorHue}, 100%, 65%)`); 
+  randomColorHue = 360 * Math.random();
+  if (randomColorHue<=300 && randomColorHue>=200) randomColorHue=300+Math.random()*60;
+  document.querySelector('#joinButton').style.setProperty('--clr-neon', `hsl(${randomColorHue}, 100%, 65%)`); 
+  randomColorHue = 360 * Math.random();
+  if (randomColorHue<=300 && randomColorHue>=200) randomColorHue=300+Math.random()*60;
+  document.querySelector('#viewButton').style.setProperty('--clr-neon', `hsl(${randomColorHue}, 100%, 65%)`); 
   
   if (document.cookie) {
     cookie = JSON.parse(document.cookie)
@@ -313,7 +326,6 @@ window.addEventListener("load", () => {
       };
     })
       .catch(error => {
-        console.log(error);
         changeAvatar();
       });
 
@@ -325,14 +337,33 @@ window.addEventListener("load", () => {
   document.body.style['-webkit-transform'] = 'scale(1.0)';
   document.body.style['-moz-transform'] = 'scale(1.0)';
   resize();
-
+  sleep(2000).then(()=>{
+    $('#connectingText').slideToggle(500, "swing");
+  })
 });
 
 function resize() {
 
+  if (gameRunning === true) {
 
+    if (innerWidth < innerHeight) {
+      document.querySelector('#gameScreen').style.display = 'none';
+      document.querySelector('#rotate').style.display = 'flex';
+      document.querySelector('#latencyDiv').style.display = 'none';
+      document.getElementById('latency').style.fontSize = '20px';
+    }
+    else {
+      document.querySelector('#gameScreen').style.display = 'block';
+      document.querySelector('#rotate').style.display = 'none';
+      document.querySelector('#latencyDiv').style.display = 'block';
+      document.getElementById('latency').style.fontSize = '14px';
+    }
+  }
+
+
+  else{
   var ratio = innerWidth / innerHeight;
-  if (ratio > 1.5) {
+  if (ratio > 1) {
     document.getElementById('usernameForm').style.transform = 'scale(0.5)';
     document.getElementById('enterRoomCode').style.transform = 'scale(1)';
     document.getElementById('waitingScreenCreate').style.transform = 'scale(0.75)';
@@ -344,6 +375,8 @@ function resize() {
     document.getElementById('waitingScreenCreate').style.transform = 'scale(1.2)';
     document.getElementById('latency').style.fontSize = '18px';
   }
+}
+fullScreenResize();
 }
 
 function handleFileSelect(evt) {
@@ -366,8 +399,7 @@ document.getElementById('createButton').addEventListener('click', () => {
   document.cookie = JSON.stringify({ username: myUsername, filename: myFileName });
   $('#waitingScreenCreate').slideToggle(900, "swing");
 
-  $('#usernameForm').slideToggle(900, "swing");
-  sleep(2000).then(() => {
+  $('#usernameForm').slideToggle(900, "swing" , () => {
     document.querySelector('#waitingScreenCreate').style.display = 'block';
     document.querySelector('#usernameForm').style.display = 'none';
   })
@@ -377,8 +409,7 @@ document.getElementById('createButton').addEventListener('click', () => {
     height: canvas.height,
     ratio: devicePixelRatio,
     username: document.querySelector('#usernameInput').value,
-    imageURL: myFileName,
-    userID: userID
+    imageURL: myFileName
   })
 
 });
@@ -389,13 +420,11 @@ socket.on('recieveRoomCode', (code) => {
 
 })
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+
 
 document.getElementById('startButton').addEventListener('click', () => {
   if (roomCode == 0) return;
-
+  if (Object.keys(clientSidePlayers).length == 1) {  document.querySelector('#waitTitle').innerHTML = "Waiting for bot players to join!"; document.querySelector('#roomCode').innerHTML=`Room Code: ${roomCode}<br><br>You may ask others to watch this room!`;}
   socket.emit('startRoom');
 
 })
@@ -404,6 +433,15 @@ function initFromStart() {
   $('#roomCode2').text(`Room Code: ${roomCode}`);
   if (viewer==true)show(false);
   else show(true);
+ 
+  if (viewer==true)
+  {
+    document.querySelector('#LeaderBoardDiv').style.setProperty('bottom', '0px');
+    document.querySelector('#latencyDiv').style.removeProperty('top');
+    document.querySelector('#latencyDiv').style.setProperty('bottom', '25px');
+    document.querySelector('#timeDiv').style.removeProperty('top');
+    document.querySelector('#timeDiv').style.setProperty('bottom', '40px');
+  }
 
   sleep(1000).then(() => {
     gameRunning = true;
@@ -417,11 +455,9 @@ function initFromStart() {
       document.querySelector('#rotate').style.display = 'none';
       document.querySelector('#latencyDiv').style.display = 'block';
     }
-    $('#userDiv').slideToggle(300, "linear");
-    sleep(1000).then(() => {
-      if (document.querySelector('#userDiv').style.display != 'none') document.querySelector('#userDiv').style.display = 'none';
-
-    })
+    $('#userDiv').slideToggle(300, "linear", ()=>{
+      document.querySelector('#userDiv').style.display = 'none';
+    });
 
   });
 }
@@ -459,9 +495,8 @@ document.getElementById('joinButton').addEventListener('click', () => {
 
   $('#enterRoomCode').slideToggle(900, "swing");
 
-  $('#usernameForm').slideToggle(900, "swing");
-  sleep(2000).then(() => {
-    document.querySelector('#enterRoomCode').style.display = 'block';
+  $('#usernameForm').slideToggle(900, "swing" ,() => {
+    document.querySelector('#enterRoomCode').style.display = 'flex';
     document.querySelector('#usernameForm').style.display = 'none';
   })
 
@@ -481,8 +516,7 @@ function roomCodeButtonFunction(event) {
     height: canvas.height,
     ratio: devicePixelRatio,
     username: document.querySelector('#usernameInput').value,
-    imageURL: myFileName,
-    userID: userID
+    imageURL: myFileName
   })
   else socket.emit('requestView', {
     roomName: v,
@@ -508,8 +542,7 @@ socket.on('roomJoinSuccess', () => {
 
   $('#waitingScreenCreate').slideToggle(900, "swing");
 
-  $('#enterRoomCode').slideToggle(900, "swing");
-  sleep(2000).then(() => {
+  $('#enterRoomCode').slideToggle(900, "swing" , () => {
     if (document.querySelector('#waitingScreenCreate').style.display == 'none') document.querySelector('#waitingScreenCreate').style.display = 'block';
     if (document.querySelector('#enterRoomCode').style.display != 'none') document.querySelector('#enterRoomCode').style.display = 'none';
   })
@@ -519,27 +552,40 @@ socket.on('roomJoinSuccess', () => {
 
 socket.on('invalidRoom', () => {
 
-  if (roomCode == 0) { alert("Invalid Room Code! No such rooms running."); }
-  else if (gameClosed == false) { alert("Your room was expired!"); gameClosed = true;}
+  if (roomCode == 0) { if (viewer == false) alert("Maybe no such rooms running. If it's a Bot Room, try to watch the game"); else alert("Maybe no such rooms running."); }
+  else if (gameClosed == false) { alert("Your room was expired!"); gameClosed = true; location.reload();}
 })
 
-socket.on("requestAgain", () => {
-  if (viewer==false) socket.emit('rejoinRoom', {
-    roomName: roomCode,
-    userID: userID,
-    width: canvas.width,
-    height: canvas.height,
-    ratio: devicePixelRatio
+socket.on("setUserID", (newUserID)=>
+{
+  if (currUserID != -1) {
 
-  });
-  else{
-    socket.emit('requestView', {
-      roomName: v,
+    if (viewer == false) socket.emit('rejoinRoom', {
+      roomName: roomCode,
       width: canvas.width,
       height: canvas.height,
-      ratio: devicePixelRatio
+      ratio: devicePixelRatio,
+      prevSocketID: currSocketID,
+      prevUserID: currUserID
+
     });
+    else {
+      socket.emit('requestView', {
+        roomName: roomCode,
+        width: canvas.width,
+        height: canvas.height,
+        ratio: devicePixelRatio
+      });
+    }
   }
+  else{
+    currUserID = newUserID;
+    currSocketID = socket.id;
+  }
+})
+
+socket.on("rejoinSuccess", ()=>{
+  currSocketID = socket.id;
 })
 
 function upload(f) {
@@ -550,7 +596,7 @@ function upload(f) {
   formData.append("publicKey", "public_wqJSbY8kM/koZvHg41fLVl40LqY=");
 
   $.ajax({
-    url: "/auth",
+    url: host +"auth",
     method: "GET",
     dataType: "json",
     success: function (body) {
@@ -567,7 +613,6 @@ function upload(f) {
         processData: false,
         contentType: false,
         error: function (jqxhr, text, error) {
-          console.log(error);
           if (loadingImage == true) {
             document.getElementById("avatarImage").src = prevSrc;
             loadingImage = false;
@@ -584,7 +629,6 @@ function upload(f) {
             }
           }
           else {
-            console.log(body);
             if (loadingImage == true) {
               document.getElementById("avatarImage").src = prevSrc;
               loadingImage = false;
@@ -597,7 +641,6 @@ function upload(f) {
     },
 
     error: function (jqxhr, text, error) {
-      console.log(error);
       if (loadingImage == true) {
         document.getElementById("avatarImage").src = prevSrc;
         loadingImage = false;
@@ -626,7 +669,7 @@ function changeAvatar() {
         loadingImage = false;
         upload(base64String);
       };
-    }).catch(err=>console.log(err));
+    }).catch(err=>{});
 }
 
 
@@ -676,9 +719,7 @@ socket.on ("playerColor", (color)=>{
  
 })
 
-window.addEventListener('popstate', () => {
-  console.log('User clicked back button');
-})
+
 
 var viewer = false;
 
@@ -689,9 +730,26 @@ document.querySelector('#viewButton').addEventListener('click', ()=>{
   document.querySelector('#playground').style.height = '100%';
   document.querySelector('#joyArea').style.display = 'none';
   $('#enterRoomCode').slideToggle(900, "swing");
-  $('#usernameForm').slideToggle(900, "swing");
-  sleep(2000).then(() => {
-    document.querySelector('#enterRoomCode').style.display = 'block';
+  $('#usernameForm').slideToggle(900, "swing" , () => {
+    document.querySelector('#enterRoomCode').style.display = 'flex';
     document.querySelector('#usernameForm').style.display = 'none';
   })
 })
+
+document.querySelector('#backButton').addEventListener('click', ()=>{
+  viewer = false;
+  canvas.height = innerHeight * devicePixelRatio * 0.65;
+  c.scale(devicePixelRatio,devicePixelRatio);
+  document.querySelector('#playground').style.height = '65%';
+  document.querySelector('#joyArea').style.display = 'block';
+  $('#enterRoomCode').slideToggle(900, "swing");
+  $('#usernameForm').slideToggle(900, "swing" , () => {
+    document.querySelector('#enterRoomCode').style.display = 'none';
+    document.querySelector('#usernameForm').style.display = 'flex';
+  })
+})
+
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
