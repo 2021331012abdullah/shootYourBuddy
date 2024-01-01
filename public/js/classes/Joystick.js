@@ -3,9 +3,9 @@ function show(showJoystick) {
   const elem = document.documentElement;
   if (elem.requestFullscreen) { /* Chrome */
     elem.requestFullscreen();
-  } else if (elem.webkitRequestFullscreen) { /* Safari */
+  } if (elem.webkitRequestFullscreen) { /* Safari */
     elem.webkitRequestFullscreen();
-  } else if (elem.msRequestFullscreen) { /* IE11 */
+  } if (elem.msRequestFullscreen) { /* IE11 */
     elem.msRequestFullscreen();
   }
 
