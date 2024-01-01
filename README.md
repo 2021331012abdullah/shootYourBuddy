@@ -1,1 +1,1 @@
-play the game live on shootyourbuddy.netlify.app
+play the game live on https://shootyourbuddy.netlify.app
