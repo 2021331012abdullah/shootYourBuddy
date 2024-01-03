@@ -10,7 +10,7 @@ var myUsername = "";
 const socket = io(host,  { path: '/socket.io'});
 var currSocketID = -1;
 var currUserID = -1;
-
+var redirected = false;
 var prevSrc;
 var devicePixelRatio = window.devicePixelRatio || 1
 canvas.width = innerWidth * devicePixelRatio
@@ -227,28 +227,33 @@ setInterval(
 
 var sendTime; var sendTimeID = 0;
 var pongRecieved = false;
+var lastPingSent = Date.now();
 var firstPongRecieved = false;
 setInterval(() => {
   if (gameClosed == false) {
     if (pongRecieved == false) {
       document.querySelector("#latency").innerHTML = "Disconnected!";
+      if (redirected == true && roomCode==0 && window.location.href!='https://legendarybeast.github.io/canvas-game/') {window.location.reload();}
+    
     }
     pongRecieved = false;
     sendTime = Date.now();
     sendTimeID++;
     socket.emit("ping",sendTimeID);
+    lastPingSent = Date.now();
   }
 }, 500);
 
 socket.on("pong", (responseID) => {
-  if (responseID != sendTimeID) {
-    return;
-  }
-  pongRecieved = true;
   if (firstPongRecieved == false){
     firstPongRecieved = true;
     document.querySelector('#connecting').style.display = 'none';
   }
+  if (responseID != sendTimeID) {
+    return;
+  }
+  pongRecieved = true;
+ 
   var delay = Date.now() - sendTime;
   document.querySelector("#latency").innerHTML = "Latency: " + delay + "ms";
 })
@@ -293,7 +298,12 @@ window.addEventListener("resize", () => {
 });
 
 window.addEventListener("load", () => {
-
+  redirected = false;
+  roomCode = 0;
+  gameRunning = false;
+  gameClosed = false;
+  currSocketID = -1;
+  currUserID = -1;
   window.history.pushState({}, null, null);
   var randomColorHue = 360 * Math.random();
   if (randomColorHue<=300 && randomColorHue>=200) randomColorHue=300+Math.random()*60;
@@ -558,7 +568,7 @@ socket.on('invalidRoom', () => {
 
 socket.on("setUserID", (newUserID)=>
 {
-  if (currUserID != -1) {
+  if (currUserID != -1 && roomCode!=0) {
 
     if (viewer == false) socket.emit('rejoinRoom', {
       roomName: roomCode,
