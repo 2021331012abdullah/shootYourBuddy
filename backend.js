@@ -3,13 +3,21 @@ const app = express()
 const http = require('http')
 const server = http.createServer(app)
 const { Server } = require('socket.io')
-const io = new Server(server, { pingInterval: 2000, pingTimeout: 600000, cors: { origins: ["https://shootyourbuddy.netlify.app", "http://127.0.0.1:5500"] } })
+const io = new Server(server, { pingInterval: 2000, pingTimeout: 600000, cors: { origins: ["https://shoot-yb.netlify.app", "http://127.0.0.1:5500"] } })
 const port = 3005
 const cors = {
-  origin: ["https://shootyourbuddy.netlify.app", "http://127.0.0.1:5500"],
-  default: "https://shootyourbuddy.netlify.app"
+  origin: ["https://shoot-yb.netlify.app", "http://127.0.0.1:5500"],
+  default: "https://shoot-yb.netlify.app"
 }
-
+app. get('/', (req, res) => {
+	res.redirect("https://shoot-yb.netlify.app");
+});
+app.post('/live', (req, res) => {  
+  const origin = "*";
+  res.header("Access-Control-Allow-Origin", origin); res.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.end("hi, i'm live");  
+})  
 app.get('/auth', (req, res) => {
   const origin = cors.origin.includes(req.header('origin').toLowerCase()) ? req.headers.origin : cors.default;
   res.header("Access-Control-Allow-Origin", origin); res.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT");
@@ -125,7 +133,7 @@ io.on('connection', (socket) => {
     if (runningRooms[room] == 2) {
 
       async function botconf(botID) {
-        var botName = nameList[Math.floor(Math.random() * nameList.length)] + "bot";
+        var botName = nameList[Math.floor(Math.random() * nameList.length)].toLowerCase();
         var botImage = await uploadForAvatar();
         var randomColorHue = 360 * Math.random();
       if (randomColorHue<=300 && randomColorHue>=200) randomColorHue=300+Math.random()*60;
@@ -149,8 +157,8 @@ io.on('connection', (socket) => {
 
         if (serverSidePlayers[room]["bot1"] && serverSidePlayers[room]["bot2"]) { botMode = true; botRooms[room] = userID; }
       }
-      botconf("bot1");
-      botconf("bot2");
+      sleep(Math.random()*50).then(()=>{botconf("bot1");})
+      sleep(Math.random()*50).then(()=>{botconf("bot2");})
 
     }
     else {
