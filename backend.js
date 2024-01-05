@@ -16,7 +16,9 @@ app.post('/live', (req, res) => {
   const origin = "*";
   res.header("Access-Control-Allow-Origin", origin); res.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  res.end("hi, i'm live");  
+  console.log(req.data);
+  console.log(req.body);
+ res.end("hi, i'm live");  
 })  
 app.get('/auth', (req, res) => {
   const origin = cors.origin.includes(req.header('origin').toLowerCase()) ? req.headers.origin : cors.default;
