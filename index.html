@@ -1,0 +1,313 @@
+
+<html>
+<head>
+  <title>Shoot Your Buddy beta</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./index.css">
+
+</head>
+
+<body>
+
+  <div id="gameScreen" style="display: none;">
+    <div id="main_part">
+      <div class="hideScrollBar" style="
+          position: absolute;
+          color: white;
+          padding: 8px;
+          font-family: sans-serif;
+          font-size: 20px;
+          user-select: none;
+          background: rgba(0, 0, 0, 0.5);
+          max-height: 200px; overflow:scroll;
+        " id="LeaderboardDiv">
+
+        <div style="margin-bottom: 8px; color: white">Leaderboard</div>
+        <div id="playerLabels"></div>
+      </div>
+
+      <div style="
+          position: absolute;
+          color: white;
+          padding: 8px;
+          font-family: sans-serif;
+          font-size: 20px;
+          user-select: none;
+          background: rgba(0, 0, 0, 0.5);
+          text-align: right;
+          right:0;
+        " id="timeDiv">
+        <div id="time" style="margin-bottom: 8px; color: white"></div>
+      </div>
+
+      <div style="
+          position: absolute;
+          color: white;
+          font-family: sans-serif;
+          font-size: 20px;
+          user-select: none;
+          text-align: center;
+          bottom:0;
+          left: 0;
+          right: 0;
+          margin: 0 auto;
+          width: fit-content;
+
+        ">
+        <div id="roomCode2" style="font-weight: bold; text-align:center; color: rgb(0, 0, 0); background: rgb(255, 255, 255); padding: 10px">Room code: ****</div>
+      </div>
+
+      <canvas id='playground'></canvas>
+    </div>
+
+    <div class="space-top" id="joyArea">
+      <table width="100%" height='100%'>
+        <tr>
+          <td align='center'>
+            <div class="center-align">
+              <canvas id="joystick2" height="300" width="300"></canvas>
+            </div>
+          </td>
+
+          <td align='center'>
+            <div class="center-align">
+              <canvas id="joystick1" height="300" width="300"></canvas>
+            </div>
+          </td>
+        </tr>
+      </table>
+
+    </div>
+  </div>
+
+  <!-- username input -->
+  <div id="userDiv" style="
+          background-color: black;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+          
+        ">
+    <div id="usernameForm" style="transform: scale(0.5);max-width: 100%; max-height: 100%; align-items: center; align-content: center; display: flex; flex-direction: column; display: none;">
+
+      <div style="width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+
+        <div style="display: flex; flex-direction: row; justify-content: center; align-items: center;"><img
+            id="avatarImage" src="avatar.jpg" alt=""
+            style="margin-left: 70px; margin-right: 20px; border-radius: 50%; height: 200px; width: 200px; margin-bottom: 25px; object-fit: cover;">
+              <button class="btn-reload" onclick="changeAvatar()">
+                <img src="https://htmlacademy.ru/assets/icons/reload-6x-white.png">
+              </button>
+            
+        </div>
+
+        <input type="file" name="avatar" id="file-input" accept="image/*">
+        <label id="file-input-label" for="file-input" class="button-30">Upload Avatar</label>
+
+        <input id="usernameInput" name="username" type="text" placeholder="Username" style="
+                padding: 12px;
+                border-radius: 20px;
+                border: none;
+                background: #414141;
+                color: #ffffff;
+
+                width: 580px;
+                margin-bottom: 15px;
+                margin-top: 25px;
+                font-size: 40px;
+                text-align: center;
+              " />
+
+      </div>
+      <div style=" align-content: center; text-align: center; margin-top: 20px; align-items:center; display: flex; justify-content: center; width: max-content;">
+        <div style=" padding-right: 10px;"><a class="neon-button" id="createButton">
+            Create Room
+          </a>
+        </div>
+
+        <div style=" padding-left: 10px;"><a class="neon-button" id="joinButton">
+            Join a Room
+          </a>
+        </div>
+      </div>
+      <div style=" align-content: center; text-align: center; margin-top: 20px; align-items:center; display: flex; justify-content: center; width: max-content;">
+        
+        <div style="padding-top: 25px;"><a class="neon-button" id="viewButton">
+            Watch a Game
+          </a>
+        </div>
+
+        
+      </div>
+
+      <div style=" align-content: center; text-align: center; margin-top: 80px; align-items:center; display: flex; justify-content: center; width: max-content;">
+        <button class="btnOff" type="button" onclick="window.location.href = 'https://legendarybeast.github.io/canvas-game/'; window.location.assign('https://legendarybeast.github.io/canvas-game/');  redirected = true;">
+  <p style="z-index: 2; color: white; font-weight: 400; font-size: 35px; letter-spacing: 1;">WHEN YOUR BUDDY OFFLINE</p>
+  <div id="container-stars">
+    <div id="stars"></div>
+  </div>
+
+  <div id="glow">
+    <div class="circle"></div>
+    <div class="circle"></div>
+  </div>
+</button>
+</div>
+
+    </div>
+
+    <div id="waitingScreenCreate" style="text-align: center; display: none; max-height: 100%; justify-content: center;">
+      <h3 id="waitTitle">Waiting for your buddies to join!</h3>
+
+      <p id="roomCode">Getting Room Code...</p>
+      <div style="font-size: 20px;
+      max-height: 40%; overflow-y: scroll; margin-bottom: 30 px;" id="whoJoined"></div>
+      <div style="display: flex; align-items: center; align-content: center; justify-content: center;">
+        <a class="button3d" id="startButton">
+          <div class="plate"></div>
+          <div class="plate"></div>
+          <div class="plate"></div>
+          <div class="plate"></div>
+          <div class="plate"></div>
+          <div class="button3d__wrapper">
+            <span class="button3d__text">Start Game</span>
+          </div>
+          <div class="button3d__box">
+            <div class="inner inner__top"></div>
+            <div class="inner inner__front"></div>
+            <div class="inner inner__bottom"></div>
+            <div class="inner inner__back"></div>
+            <div class="inner inner__left"></div>
+            <div class="inner inner__right"></div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div id="enterRoomCode" style="display:flex; display: none; align-items: center; justify-content: center; flex-direction: column;">
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <form class="wrapper" id="roomCodeForm" style="margin-top: 10%;">
+        <input id="roomCodeInput" style="font-size: large; color: white;" type="number" placeholder="Room Code" />
+        <button  type="submit" id="roomCodeButton">
+          <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 24 24" stroke-width="2"
+            stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+            <path d="M5 12l14 0"></path>
+            <path d="M13 18l6 -6"></path>
+            <path d="M13 6l6 6"></path>
+          </svg>
+        </button>
+      </form>
+      <div>
+      <button  style="padding-top: 5%; transform: scale(-1,1); border-radius: 50%; height: 50px; width: 50px;" id="backButton" >
+        <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 24 24" stroke-width="2"
+          stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+          <path d="M5 12l14 0"></path>
+          <path d="M13 18l6 -6"></path>
+          <path d="M13 6l6 6"></path>
+        </svg>
+      </button>
+      </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- username input end -->
+
+  <div id="endScreenDiv" style="display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -10;">
+
+    <div id="endScreen"
+      style="background-color: black; display: none; flex-direction: column; text-align: center; max-height: 100%; justify-content: center;">
+      <h1>Game Finished!</h1>
+
+      <div id="playerLabels2" style="max-height: 50%; overflow-y: scroll; "></div>
+
+    </div>
+  </div>
+
+  <div id="rotate"
+    style="background-color: rgb(0, 0, 0); margin: 0; padding: 0; display: none; flex-direction: column; text-align: center; height: 100%; width: 100%; justify-content: center; z-index: -100; align-items: center;">
+<div id="rotateIn" style="padding-top: 10%;">
+    <div class="phone" style="align-self: center;">
+      <div>
+       
+        </div>
+    </div>
+
+  </div>
+  <div  id="rotateText" style="margin-top: 30%; background-color: black ;">
+    <p style="  color: white;
+    font-size: 40px;">
+      Please rotate your device!
+  </p>
+  <p id="rotateTextIn" style="  color: white;
+        font-size: 18px;">
+          We recommend Google Chrome or Safari <br>Facebook/Messenger browser doesn't work
+    </p></div>
+  </div>
+
+  <div style="
+  position: absolute;
+  color: white;
+  padding: 2px;
+  font-family: sans-serif;
+  font-size: 16px;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.5);
+  text-align: right;
+  top: 40px;
+  right:0;
+" id="latencyDiv">
+    <span id="latency" style="font-size:14px;">Latency: </span>
+  </div>
+
+  <div style="
+  position: absolute;
+  color: white;
+  padding: 2px;
+  font-family: sans-serif;
+  user-select: none;
+  background: rgb(0, 0, 0);
+  text-align: center;
+  top: 0;
+  bottom: 0;
+  right:0;
+  left: 0;
+" id="connecting">
+    <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; "><div style="transform: scale(2);" class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+    <span style="margin-top: 75px; display: none;" id="connectingText">Taking longer? Wait until backend is spinned up!<br>Usually takes around 2 minutes. We are using free server!</span>
+  </div></div>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.2/gsap.min.js"></script>
+  <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <script src="./js/classes/Player.js"></script>
+  <script src="./js/classes/Guli.js"></script>
+  <script src="./js/classes/Joystick.js"></script>
+  <script src="./js/index.js"></script>
+
+</body>
+
+</html>
