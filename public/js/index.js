@@ -1,4 +1,4 @@
-const host = "https://test001-2e33.onrender.com/"
+const host = "https://shootyourbuddy-beta.onrender.com/"
 // const host = "https://localhost:3005/"
 const canvas = document.querySelector('#playground')
 const c = canvas.getContext('2d')
@@ -29,6 +29,8 @@ socket.on('updateGulis', (serverSideGulis) => {
     const serverSideGuli = serverSideGulis[id]
 
     if (!clientSideGulis[id]) {
+      var audio = new Audio('guli.mp3');
+      audio.play();
       clientSideGulis[id] = new Guli({
         x: serverSideGuli.x,
         y: serverSideGuli.y,
@@ -37,6 +39,7 @@ socket.on('updateGulis', (serverSideGulis) => {
         velocity: serverSideGuli.velocity
       })
     } else {
+      // gsap.to( clientSideGulis[id], {x: clientSideGulis[id].x + serverSideGulis[id].velocity.x, y: clientSideGulis[id].y + serverSideGulis[id].velocity.y});
       clientSideGulis[id].x += serverSideGulis[id].velocity.x
       clientSideGulis[id].y += serverSideGulis[id].velocity.y
     }
@@ -233,7 +236,8 @@ setInterval(() => {
   if (gameClosed == false) {
     if (pongRecieved == false) {
       document.querySelector("#latency").innerHTML = "Disconnected!";
-      if (redirected == true && roomCode==0 && window.location.href!='https://legendarybeast.github.io/canvas-game/') {window.location.reload();}
+      
+      if (redirected == true && roomCode==0 && window.location.href!='https://legendarybeast.github.io/canvas-game/' && Date.now()-lastPingSent >= 1000) {window.location.reload();}
     
     }
     pongRecieved = false;
@@ -248,6 +252,7 @@ socket.on("pong", (responseID) => {
   if (firstPongRecieved == false){
     firstPongRecieved = true;
     document.querySelector('#connecting').style.display = 'none';
+    document.querySelector('#usernameForm').style.display = 'flex';
   }
   if (responseID != sendTimeID) {
     return;
