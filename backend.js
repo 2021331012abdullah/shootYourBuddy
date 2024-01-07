@@ -12,15 +12,32 @@ const cors = {
 app. get('/', (req, res) => {
 	res.redirect("https://shoot-yb.netlify.app");
 });
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 app.post('/live', (req, res) => {  
-  const origin = "*";
-  res.header("Access-Control-Allow-Origin", origin); res.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT");
+  const origin = "https://keepbackendalive.onrender.com/";
+  res.header("Access-Control-Allow-Origin", origin); res.setHeader("Access-Control-Allow-Methods", "POST");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
- res.end("hi, i'm live");  
+ res.end("hi, i'm live: " + req.body.time);  
 })  
+
+setInterval(async () => {
+	try {
+		const url = 'https://keepbackendalive.onrender.com';
+		const response = await fetch(url);
+		const body = await response.text();
+		// console.log(body);
+	} catch (error) {
+		console.log('Error fetching: ', error);
+	}
+}, 600000);
+
+
 app.get('/auth', (req, res) => {
   const origin = cors.origin.includes(req.header('origin').toLowerCase()) ? req.headers.origin : cors.default;
-  res.header("Access-Control-Allow-Origin", origin); res.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT");
+  res.header("Access-Control-Allow-Origin", origin); res.setHeader("Access-Control-Allow-Methods", "GET");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.setHeader('Content-Type', 'application/json');
   res.end(JSON.stringify(imagekit.getAuthenticationParameters()));
@@ -133,7 +150,7 @@ io.on('connection', (socket) => {
     if (runningRooms[room] == 2) {
 
       async function botconf(botID) {
-        var botName = nameList[Math.floor(Math.random() * nameList.length)].toLowerCase();
+        var botName = nameList[Math.floor(Math.random() * nameList.length)].toLowerCase() + "BOT";
         var botImage = await uploadForAvatar();
         var randomColorHue = 360 * Math.random();
       if (randomColorHue<=300 && randomColorHue>=200) randomColorHue=300+Math.random()*60;
@@ -499,22 +516,18 @@ var nameList = ["TANVIR",
   "ASHIK",
   "SAKIN",
   "LIMON",
-  "RUMI",
   "DIPU",
   "ABID",
   "SAMIN",
   "PARTHA",
-  "ESHA",
   "ANKON",
   "MEHEDI",
   "FAIYAZ",
   "ADIL",
   "TASIN",
   "RAKIB",
-  "SADIA",
   "SOCCHO",
   "TANIM",
-  "SUSMITA",
   "SUMON",
   "EBRATUL",
   "HUDA",
@@ -526,42 +539,32 @@ var nameList = ["TANVIR",
   "PRITOM",
   "KAMRUL",
   "THOWFIQ",
-  "ZARA",
   "PRANTO",
   "SAYEED",
   "SAIF",
   "SIYAM",
-  "MAYISHA",
   "FARDIN",
   "ZIHAN",
   "NAYEM",
   "MASUM",
   "HASAN",
-  "FATEMA",
   "HASHEM",
-  "MALIHA",
   "SHIMANTO",
   "SHANTO",
   "OMI",
-  "SUMAIYA",
   "ALVE",
-  "FARHANA",
-  "SHIMU",
   "FORHAD",
   "SHUVO",
-  "OYSHI",
   "SHAMIM",
   "RUPAK",
   "FAHIM",
   "RASEL",
   "RAZ",
   "AIAS",
-  "NUZHAT",
   "TUHIN",
   "SHARIF",
   "SAYEM",
   "NILOY",
-  "FAHMIDA",
   "SHOUROV",
   "MAMUN",
   "IFTI",
@@ -630,7 +633,7 @@ function shootFunction(room, ID, x, y, angle) {
 function uploadForAvatar() {
   return new Promise((resolve) => {
     imagekit.upload({
-      file: "https://avatar.iran.liara.run/public",
+      file: "https://avatar.iran.liara.run/public/boy",
       fileName: "bot"
     }, function (error, result) {
       if (error) resolve("avatar");

@@ -7,25 +7,6 @@
 using namespace std;
 using namespace chrono;
 
-
-void msleep(long msec)
-{
-    struct timespec ts;
-    int res;
-    if (msec < 0)
-    {
-        errno = EINVAL;
-        return;
-    }
-    ts.tv_sec = msec / 1000;
-    ts.tv_nsec = (msec % 1000) * 1000000;
-    do
-    {
-        res = nanosleep(&ts, &ts);
-    } while (res && errno == EINTR);
-    return;
-}
-
 int main(int argc, char **argv)
 {
 
@@ -40,14 +21,17 @@ int main(int argc, char **argv)
     srand(nanos % 2000000000);
 
     int moveAngle1 = (rand() % 360);
-    int moveAngleNext1 = (rand() % 360);
     int moveAngle2 = (rand() % 360);
-    int moveAngleNext2 = (rand() % 360);
 
 
-    high_resolution_clock::time_point last_change = high_resolution_clock::now();
+
     int cntMove = 0;
     int cntShoot = 0;
+
+    struct timespec ts;
+    ts.tv_sec = 0;
+    ts.tv_nsec = 15 * 1000000;
+    
     while (1)
     {
 
@@ -55,11 +39,8 @@ int main(int argc, char **argv)
         if (cntMove == moveFrames)
         {
             cntMove = 0;
-            last_change = high_resolution_clock::now();
-            moveAngle1 = moveAngleNext1;
-            moveAngleNext1 = (rand() % 360) +(45*(rand()%8));
-            moveAngle2 = moveAngleNext2;
-            moveAngleNext2 = (rand() % 360) +(45*(rand()%8));
+            moveAngle1 = (rand() % 360) +(45*(rand()%8));
+            moveAngle2 = (rand() % 360) +(45*(rand()%8));
         }
         cout <<"mv" << moveAngle1 <<" " <<moveAngle2 << "\n";
         cout.flush();
@@ -74,7 +55,7 @@ int main(int argc, char **argv)
         }
 
 
-        msleep(15);
+        nanosleep(&ts, &ts);
     }
 
     return 0;
