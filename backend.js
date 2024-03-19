@@ -28,11 +28,11 @@ setInterval(async () => {
 		const url = 'https://keepbackendalive.onrender.com';
 		const response = await fetch(url);
 		const body = await response.text();
-		// console.log(body);
+		console.log(body);
 	} catch (error) {
 		console.log('Error fetching: ', error);
 	}
-}, 600000);
+}, 60000);
 
 
 app.get('/auth', (req, res) => {
